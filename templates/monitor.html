@@ -1,0 +1,18 @@
+<table class="table_dark">
+    <tr>
+        <th>Имя аккаунта</th>
+        <th>Привличено подписок</th>
+        <th>Потрачено за {{ resp.day }} дня</th>
+        <th>Должно потрачено за {{ resp.day }} дня</th>
+        <th>Критический бюджет</th>
+    </tr>
+    {% for res in resp.info %}
+            <tr>
+                <td>{{ resp.info[res][0].name }}</td>
+                <td>{{ resp.info[res][0].join }}</td>
+                <td>{{ resp.info[res][0].spent }}</td>
+                <td>{{ resp.info[res][0].max_per }}</td>
+                <td>{{ resp.info[res][0].minimal }}</td>
+            </tr>
+    {% endfor %}
+</table>

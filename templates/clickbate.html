@@ -1,0 +1,14 @@
+<table class="table_dark">
+    <tr>
+        <th>Имя аккаунта</th>
+        <th>Название</th>
+        <th>Потрачено за {{ day }}</th>
+        <th>Должно потрачего за {{ day }}</th>
+        <th>Критический бюджет</th>
+    </tr>
+    {% for inf in resp %}
+    <tr>
+        <td>{{ inf }}</td>
+    </tr>
+    {% endfor %}
+</table>

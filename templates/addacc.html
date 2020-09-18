@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Создание аккаунта</title>
+
+</head>
+<body>
+    <form action="/create" method="post" accept-charset="utf-8"
+          enctype="application/x-www-form-urlencoded">
+
+        <label for="name">Имя:</label>
+        <input id="name" name="name" type="text" value=""/> <br><br>
+        <label for="login">Логин:</label>
+        <input id="login" name="login" type="text" value=""/> <br><br>
+        <label for="pass">Пароль:</label>
+        <input id="pass" name="pass" type="text" value=""/><br><br>
+        <label for="spent">Сколько должно потрачено за месяц:</label>
+        <input id="spent" name="spent" type="text" value=""/><br><br>
+        <label for="critik">Критический бюджет:</label>
+        <input id="critik" name="critik" type="text" value=""/><br><br>
+        <label for="join">Планово подписчиков:</label>
+        <input id="join" name="join" type="text" value=""/>
+        <br><br>
+        <input type="submit" name="do_create" value="Создать аккаунт"/>
+    </form>
+</body>
+</html>

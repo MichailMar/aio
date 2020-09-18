@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    номер:пароль Имя <br>
+    <textarea style="width: 500px; height:500px;" >{% for i in acc %}
+{{ acc[i].acname }} {{acc[i].login}}:{{acc[i].pass}}{% endfor %} </textarea>
+</body>
+</html>
