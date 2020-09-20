@@ -1,43 +1,187 @@
-import sqlite3
-from pathlib import Path
+import time
+from python3_anticaptcha import ImageToTextTask
+import vk_api
+from vklibary import database
+from datetime import datetime, timedelta
 
-conn = sqlite3.connect(str(Path(__file__).resolve().parent)+'/sfds.db')
-conn.row_factory = sqlite3.Row
-c = conn.cursor()
+def captcha_handler(captcha):
+    key = ImageToTextTask.ImageToTextTask(anticaptcha_key="f0d1147d67df6a70b77ccf1e41372dc1", save_format='const') \
+        .captcha_handler(captcha_link=captcha.get_url())
 
-
-def GetInfo(table, sorting="", what="*"):
-    if sorting == "":
-        sql = "SELECT {0} FROM {1}".format(what, table)
-    else:
-        sql = "SELECT {0} FROM {1} WHERE {2}".format(what, table, sorting)
-    obj = c.execute(sql)
-    return obj.fetchall()
+    # Пробуем снова отправить запрос с капчей
+    return captcha.try_again(key['solution']['text'])
 
 
-def GetAds(datestart, dateend, sorting=""):
-    sql = "SELECT * FROM static WHERE date BETWEEN '{0}' and '{1}' AND {2} ".format(datestart, dateend, sorting)
-    obj = c.execute(sql)
-    return obj.fetchall()
+def UploadInfo():
+    database.Clear("ads")
+    database.Clear("static")
+    database.Clear("account_monitor")
+    for ac in database.GetInfo("account"):
+        vk_session = vk_api.VkApi('{0}'.format(ac["login"]), '{0}'.format(ac["pass"]), captcha_handler=captcha_handler)
+        vk_session.auth()
+        ac_l = ac["login"]
+        vk = vk_session.get_api()
+        ac = vk.ads.getAccounts()[0]
+        camp = vk.ads.getCampaigns(account_id=ac['account_id'])
+        budgect = vk.ads.getBudget(account_id=ac['account_id'])
+        database.Insert("account_monitor", "'{0}', '{1}', '{2}', '{3}'".format(ac["account_id"], budgect, ac["account_name"],
+                                                                               ac_l))
+        time.sleep(1)
+        for cm in camp:
+            resp = vk.ads.getAds(account_id=ac["account_id"], include_deleted=1, campaign_ids="[{0}]".format(cm["id"]))
+            adIds = {}
+            for ad in resp:
+                database.Insert("ads", "'{0}', '{1}', '{2}','{3}', '{4}', '{5}'".format(ad["id"], ad["name"], cm["id"],
+                                                                                        ac["account_id"],
+                                                                                        cm["name"], ac["account_name"]))
+                adIds.update({str(ad["id"]): 0})
+            StaticLoad(vk, ac["account_id"], adIds)
+            time.sleep(1)
 
 
-def Insert(table, value):
-    sql = "INSERT INTO {0} VALUES({1})".format(table, value)
-    c.execute(sql)
-    conn.commit()
+def StaticLoad(api, acid, adids):
+    resp = api.ads.getStatistics(account_id=acid, ids_type="ad", period="day",
+                                 ids=",".join(adids),
+                                 date_from=0, date_to=0)
+    for res in resp:
+        static = []
+        id = res["id"]
+        if "stats" in res:
+            for stat in res["stats"]:
+                join = 0
+                clicks = 0
+                spent = 0
+                reach = 0
+                if "join_rate" in stat:
+                    join = stat["join_rate"]
+                if "clicks" in stat:
+                    clicks = stat["clicks"]
+                if "spent" in stat:
+                    spent = stat["spent"]
+                if "reach" in stat:
+                    reach = stat["reach"]
+
+                static.append((id, stat["day"], join, clicks, reach, 0, 0, 0, spent))
+        database.InsertStatic(static)
 
 
-def InsertStatic(static):
-    c.executemany("INSERT INTO static VALUES (?,?,?,?,?,?,?,?,?)", static)
-    conn.commit()
+def CreateAcc(name, login, password, spent, critik, join):
+    database.Insert("account", "'{0}', '{1}','{2}','{3}','{4}','{5}'".format(name,
+                                                                             login,
+                                                                             password,
+                                                                             spent,
+                                                                             critik,
+                                                                             join))
 
 
-def InsertTempory(static):
-    c.executemany("INSERT INTO temporary_data VALUES (?,?,?,?,?,?,?,?)", static)
-    conn.commit()
+def GetMonitor(start, end):
+    info = {"day": 0, 'info': {}}
+    c = 0
+    for ac in database.GetInfo("account"):
+        c += 1
+        for acv in database.GetInfo("account_monitor", sorting="office_login='{0}'".format(ac['login'])):
+            start_d = datetime.strptime(start, "%Y-%m-%d")
+            end_d = datetime.strptime(end, "%Y-%m-%d")
+            day = start_d - end_d
+            day = -day.days
+            last_day = start_d.today() - timedelta(days=2)
+            last_day = last_day.strftime("%Y-%m-%d")
+            last = {'spent':0, 'join':0}
+            spent = 0
+            join = 0
+            summ = acv["summ"]
+            minimal = ac["minimal_budjet"]
+            pale_join = ac["plane_join"]
+
+            for ad in database.GetInfo("ads", sorting="id_ads_office='{0}'".format(acv["id"])):
+                id = ad["id"]
+                for static_ad in database.GetAds(start, end, "id_ads = '{0}'".format(id)):
+                    spent += static_ad["spent"]
+                    join += static_ad["join"]
+                    if last_day == static_ad["date"]:
+                        last['spent'] += static_ad["spent"]
+                        last['join'] += static_ad["join"]
+
+            max_per = ac["max_waste_per_month"] / 30 * day
+            info['day'] = day
+            info['info'].update({c: {"name":ac["name"],"spent": spent, "join": join, "summ": summ,
+                                  "minimal": minimal, "pale_join": pale_join, "max_per": max_per, "last": last}})
 
 
-def Clear(table):
-    sql = "DELETE FROM {0}".format(table)
-    c.execute(sql)
-    conn.commit()
+    return info
+
+
+def GetStats(start, end):
+    static = {}
+    for ad in database.GetInfo("ads"):
+        day = 0
+        join = 0
+        clicks = 0
+        spent = 0
+        reach = 0
+        traffic = 0
+        sale = 0
+        join_message = 0
+        id = ad["id"]
+        for static_ad in database.GetAds(start, end, "id_ads = '{0}'".format(id)):
+            day += 1
+            clicks += static_ad["clicks"]
+            spent += static_ad["spent"]
+            reach += static_ad["reach"]
+            traffic += static_ad["traffic"]
+            sale += static_ad["sale"]
+            join_message += static_ad["join_message"]
+            join += static_ad["join"]
+
+        if day != 0:
+            static.update({id: {'day':day,'join': join,'clicks': clicks,'traffic': traffic,'reach': reach,
+                                'join_message':join_message, 'name_ad':ad['name'], 'name_camp':ad['name_camp'],
+                               'name_office':ad['name_office'], 'sale':sale}})
+
+    return static
+
+
+def GetCamp(start, end, type):
+    static = {}
+    c = 0
+    start_d = datetime.strptime(start, "%Y-%m-%d")
+    end_d = datetime.strptime(end, "%Y-%m-%d")
+    day = start_d - end_d
+    last_day = start_d.today() - timedelta(days=2)
+    last_day = last_day.strftime("%Y-%m-%d")
+    day = -day.days
+    for aci in database.GetInfo("account"):
+        for ac in database.GetInfo("account_monitor", sorting="office_login='{0}'".format(aci['login'])):
+            join = 0
+            clicks = 0
+            spent = 0
+            reach = 0
+            traffic = 0
+            sale = 0
+            join_message = 0
+            name = ""
+            office = ""
+            last = {'spent':0, 'join':0}
+            for ad in database.GetInfo("ads", "id_ads_office='{0}'".format(ac['id'])):
+                if type.lower() in ad["name_camp"].lower():
+                    id = ad["id"]
+                    for static_ad in database.GetAds(start, end, "id_ads = '{0}'".format(id)):
+                        if last_day == static_ad["date"]:
+                            last['spent'] += static_ad["spent"]
+                            last['join'] += static_ad["join"]
+                        clicks += static_ad["clicks"]
+                        spent += static_ad["spent"]
+                        reach += static_ad["reach"]
+                        traffic += static_ad["traffic"]
+                        sale += static_ad["sale"]
+                        join_message += static_ad["join_message"]
+                        join += static_ad["join"]
+                    office = ad['name_office']
+                    name = ad["name_camp"]
+
+
+            static.update({c: {'day': day,  'spent': spent,'join': join, 'clicks': clicks, 'traffic': traffic, 'reach': reach,
+                                            'max_per': aci['max_waste_per_month'], 'join_message': join_message, 'name_camp': name,
+                                            'name_office': office, 'sale': sale, 'last': last}})
+            c += 1
+    return static
