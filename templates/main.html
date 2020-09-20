@@ -44,18 +44,21 @@
     <form action="/monitoring" method="GET" accept-charset="utf-8">
         {% if type | int == 1 %}
             {{ checkbox("monitor", "Бюджет") }}
-            {{ checkbox("clickbate", "Кликбейт", "") }}
+            {{ checkbox("clickbate", "Компании", "") }}
         {% elif type | int == 2 %}
             {{ checkbox("monitor", "Бюджет", "") }}
-            {{ checkbox("clickbate", "Кликбейт") }}
+            {{ checkbox("clickbate", "Компании") }}
         {% else %}
             {{ checkbox("monitor", "Бюджет", "") }}
-            {{ checkbox("clickbate", "Кликбейт", "") }}
+            {{ checkbox("clickbate", "Компании", "") }}
         {% endif %}
+
         <label for="start_date">От ( например 2020-08-15 ) </label>
         <input id="start_date" type="text" name="start_date"/>
         <label for="end_date">до ( например 2020-09-15 ) </label>
         <input id="end_date" type="text" name="end_date"/> <br>
+        <label for="type">Введите заголовок ( тип ) компании, например "ДР", "Кликбейт"</label>
+        <input id="type" type="text" name="type"/> <br>
         <input type="submit" value="Показать данные"/>
     </form>
     {% if type | int == 1 %}
