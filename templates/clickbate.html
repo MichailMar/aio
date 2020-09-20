@@ -1,14 +1,32 @@
 <table class="table_dark">
     <tr>
         <th>Имя аккаунта</th>
-        <th>Название</th>
+        <th>Название компании</th>
         <th>Потрачено за {{ day }}</th>
         <th>Должно потрачего за {{ day }}</th>
-        <th>Критический бюджет</th>
+        <th>Охват</th>
+        <th>Продажи</th>
+        <th>Трафик</th>
+        <th>Привличено подписчиков</th>
+        <th>Подписались на рассылку</th>
+        <th>Кликов</th>
+        <th>Потрачено за прошлый день</th>
+        <th>Подписчиков за прошлый день</th>
     </tr>
-    {% for inf in resp %}
-    <tr>
-        <td>{{ inf }}</td>
-    </tr>
+    {% for res in resp %}
+            <tr>
+                <td>{{ resp[res].name_office }}</td>
+                <td>{{ resp[res].name_camp }}</td>
+                <td>{{ resp[res].spent | smart_round }}</td>
+                <td>{{ resp[res].max_per | smart_round }}</td>
+                <td>{{ resp[res].reach | smart_round }}</td>
+                <td>{{ resp[res].sale | smart_round }}</td>
+                <td>{{ resp[res].traffic | smart_round }}</td>
+                <td>{{ resp[res].join | smart_round }}</td>
+                <td>{{ resp[res].join_message | smart_round }}</td>
+                <td>{{ resp[res].clicks | smart_round }}</td>
+                <td>{{ resp[res].last.spent | smart_round }}</td>
+                <td>{{ resp[res].last.join | smart_round }}</td>
+            </tr>
     {% endfor %}
 </table>
