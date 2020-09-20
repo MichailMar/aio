@@ -84,8 +84,7 @@ def GetMonitor(start, end):
             end_d = datetime.strptime(end, "%Y-%m-%d")
             day = start_d - end_d
             day = -day.days
-            last_day = start_d.today() - timedelta(days=2)
-            last_day = last_day.strftime("%Y-%m-%d")
+            last_day = end_d.replace(day=end_d.day - 1).strftime("%Y-%m-%d")
             last = {'spent':0, 'join':0}
             spent = 0
             join = 0
@@ -147,8 +146,7 @@ def GetCamp(start, end, type):
     start_d = datetime.strptime(start, "%Y-%m-%d")
     end_d = datetime.strptime(end, "%Y-%m-%d")
     day = start_d - end_d
-    last_day = start_d.today() - timedelta(days=2)
-    last_day = last_day.strftime("%Y-%m-%d")
+    last_day = end_d.replace(day=end_d.day-1).strftime("%Y-%m-%d")
     day = -day.days
     for aci in database.GetInfo("account"):
         for ac in database.GetInfo("account_monitor", sorting="office_login='{0}'".format(aci['login'])):
@@ -179,8 +177,8 @@ def GetCamp(start, end, type):
                     office = ad['name_office']
                     name = ad["name_camp"]
 
-
-            static.update({c: {'day': day,  'spent': spent,'join': join, 'clicks': clicks, 'traffic': traffic, 'reach': reach,
+            if name != "":
+                static.update({c: {'day': day,  'spent': spent,'join': join, 'clicks': clicks, 'traffic': traffic, 'reach': reach,
                                             'max_per': aci['max_waste_per_month'], 'join_message': join_message, 'name_camp': name,
                                             'name_office': office, 'sale': sale, 'last': last}})
             c += 1
