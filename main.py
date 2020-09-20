@@ -2,13 +2,11 @@ from aiohttp import web
 import aiohttp_jinja2
 import jinja2
 from pathlib import Path
-import vk_upload_info
 from vklibary import core
 
 
 here = str(Path(__file__).resolve().parent) + "/templates"
 routes = web.RouteTableDef()
-vk_upload_info.generateAc()
 
 
 @aiohttp_jinja2.template('main.html')
@@ -21,8 +19,8 @@ async def monitor(req):
         type = 2
 
     stat = ""
-    if "start_date" in q and "end_date" in q and type == 2:
-        stat = core.GetStats(q["start_date"], q["end_date"])
+    if "start_date" in q and "end_date" in q and type == 2 and "type" in q:
+        stat = core.GetCamp(q["start_date"], q["end_date"],q['type'])
     elif "start_date" in q and "end_date" in q and type == 1:
         stat = core.GetMonitor(q["start_date"], q["end_date"])
     return {"type": type, "resp": stat}
@@ -32,11 +30,6 @@ async def monitor(req):
 @aiohttp_jinja2.template('login.html')
 async def index_handler(request):
     return {}
-
-
-@aiohttp_jinja2.template('acc.html')
-def getacc(request):
-    return {"acc": vk_upload_info.getAcc()}
 
 
 @routes.post('/accadd')
@@ -74,7 +67,5 @@ app = web.Application()
 aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader(here), filters=filters)
 app.router.add_get('/', index_handler)
 app.router.add_get('/monitoring', monitor)
-app.router.add_get('/acc', getacc)
 app.router.add_get('/accadd', addacc)
-app.router.add_post('/create', create)
-web.run_app(app)
+web.run_app(app, host='91.210.168.170/')
