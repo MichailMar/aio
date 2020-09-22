@@ -1,32 +1,114 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        .table_dark {
+          font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+          font-size: 14px;
+          width: 640px;
+          text-align: left;
+          border-collapse: collapse;
+          background: #252F48;
+          margin-top: 10px;
+        }
+      .table_dark th {
+          color: #EDB749;
+          border-bottom: 1px solid #37B5A5;
+          padding: 12px 17px;
+        }
+        .table_dark td {
+          color: #CAD4D6;
+          border-bottom: 1px solid #37B5A5;
+          border-right:1px solid #37B5A5;
+          padding: 7px 17px;
+        }
+        .table_dark tr:last-child td {
+          border-bottom: none;
+        }
+        .table_dark td:last-child {
+          border-right: none;
+        }
+        .table_dark tr:hover td {
+          text-decoration: underline;
+        }
+        a {
+            color: white;
+            text-decoration: none;
+        }
+        a:active {
+            color:white
+        }
+      </style>
+</head>
 <table class="table_dark">
     <tr>
         <th>Имя аккаунта</th>
-        <th>Название компании</th>
+        <th>Тип компании</th>
         <th>Потрачено за {{ day }}</th>
         <th>Должно потрачего за {{ day }}</th>
         <th>Охват</th>
         <th>Продажи</th>
         <th>Трафик</th>
         <th>Привличено подписчиков</th>
-        <th>Подписались на рассылку</th>
+        <th>Подписок на рассылку</th>
         <th>Кликов</th>
         <th>Потрачено за прошлый день</th>
         <th>Подписчиков за прошлый день</th>
     </tr>
-    {% for res in resp %}
-            <tr>
-                <td>{{ resp[res].name_office }}</td>
-                <td>{{ resp[res].name_camp }}</td>
-                <td>{{ resp[res].spent | smart_round }}</td>
-                <td>{{ resp[res].max_per | smart_round }}</td>
-                <td>{{ resp[res].reach | smart_round }}</td>
-                <td>{{ resp[res].sale | smart_round }}</td>
-                <td>{{ resp[res].traffic | smart_round }}</td>
-                <td>{{ resp[res].join | smart_round }}</td>
-                <td>{{ resp[res].join_message | smart_round }}</td>
-                <td>{{ resp[res].clicks | smart_round }}</td>
-                <td>{{ resp[res].last.spent | smart_round }}</td>
-                <td>{{ resp[res].last.join | smart_round }}</td>
-            </tr>
-    {% endfor %}
+    {% if type == 1 %}
+        {% for camp in dr %}
+                <tr>
+                    <td>{{ dr[camp].name_office }}</td>
+                    <td>ДР</td>
+                    <td>{{ dr[camp].spent | smart_round }}</td>
+                    <td>{{ dr[camp].max_per | smart_round }}</td>
+                    <td>{{ dr[camp].reach | smart_round }}</td>
+                    <td>{{ dr[camp].sale | smart_round }}</td>
+                    <td>{{ dr[camp].traffic | smart_round }}</td>
+                    <td>{{ dr[camp].join | smart_round }}</td>
+                    <td>{{ dr[camp].join_message | smart_round }}</td>
+                    <td>{{ dr[camp].clicks | smart_round }}</td>
+                    <td>{{ dr[camp].last.spent | smart_round }}</td>
+                    <td>{{ dr[camp].last.join | smart_round }}</td>
+                    <td><a href="/details_company?date_start={{ info.start }}&date_end={{ info.end }}&office={{ click[camp].office }}&type=др">подробнее</a></td>                </tr>
+        {% endfor %}
+        {% for camp in click %}
+
+                <tr>
+                    <td>{{ click[camp].name_office }}</td>
+                    <td>Кликбейт</td>
+                    <td>{{ click[camp].spent | smart_round }}</td>
+                    <td>{{ click[camp].max_per | smart_round }}</td>
+                    <td>{{ click[camp].reach | smart_round }}</td>
+                    <td>{{ click[camp].sale | smart_round }}</td>
+                    <td>{{ click[camp].traffic | smart_round }}</td>
+                    <td>{{ click[camp].join | smart_round }}</td>
+                    <td>{{ click[camp].join_message | smart_round }}</td>
+                    <td>{{ click[camp].clicks | smart_round }}</td>
+                    <td>{{ click[camp].last.spent | smart_round }}</td>
+                    <td>{{ click[camp].last.join | smart_round }}</td>
+                    <td><a href="/details_company?date_start={{ info.start }}&date_end={{ info.end }}&office={{ click[camp].office }}&type=кликбейт">подробнее</a></td>
+                </tr>
+        {% endfor %}
+    {% else %}
+            {% for camp in stat %}
+                <tr>
+                    <td>{{ stat[camp].name_office }}</td>
+                    <td>{{ stat[camp].name_camp }}</td>
+                    <td>{{ stat[camp].spent | smart_round }}</td>
+                    <td>{{ stat[camp].max_per | smart_round }}</td>
+                    <td>{{ stat[camp].reach | smart_round }}</td>
+                    <td>{{ stat[camp].sale | smart_round }}</td>
+                    <td>{{ stat[camp].traffic | smart_round }}</td>
+                    <td>{{ stat[camp].join | smart_round }}</td>
+                    <td>{{ stat[camp].join_message | smart_round }}</td>
+                    <td>{{ stat[camp].clicks | smart_round }}</td>
+                    <td>{{ stat[camp].last.spent | smart_round }}</td>
+                    <td>{{ stat[camp].last.join | smart_round }}</td>
+                </tr>
+            {% endfor %}
+
+    {% endif %}
 </table>
