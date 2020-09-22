@@ -1,22 +1,19 @@
 <table class="table_dark">
     <tr>
         <th>Имя аккаунта</th>
-        <th>Привличено подписок</th>
         <th>Потрачено за {{ resp.day }} дня</th>
         <th>Должно потрачено за {{ resp.day }} дня</th>
         <th>Потрачено за прошлый день</th>
-        <th>Подписчиков за прошлый день</th>
         <th>Критический бюджет</th>
     </tr>
     {% for res in resp.info %}
             <tr>
                 <td>{{ resp.info[res].name }}</td>
-                <td>{{ resp.info[res].join | smart_round}}</td>
                 <td>{{ resp.info[res].spent | smart_round }}</td>
                 <td>{{ resp.info[res].max_per | smart_round }}</td>
                 <td>{{ resp.info[res].last.spent | smart_round }}</td>
-                <td>{{ resp.info[res].last.join | smart_round }}</td>
                 <td>{{ resp.info[res].minimal | smart_round }}</td>
+                <td><a href="/company?date_start={{ info.start }}&date_end={{ info.end }}&office={{ resp.info[res].office }}">Подробнее</a></td>
             </tr>
     {% endfor %}
 </table>
