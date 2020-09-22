@@ -11,11 +11,12 @@ def captcha_handler(captcha):
     # Пробуем снова отправить запрос с капчей
     return captcha.try_again(key['solution']['text'])
 
-
+# region Upload
 def UploadInfo():
     database.Clear("ads")
     database.Clear("static")
     database.Clear("account_monitor")
+    database.Clear("company")
     for ac in database.GetInfo("account"):
         vk_session = vk_api.VkApi('{0}'.format(ac["login"]), '{0}'.format(ac["pass"]), captcha_handler=captcha_handler)
         vk_session.auth()
@@ -28,6 +29,8 @@ def UploadInfo():
                                                                                ac_l))
         time.sleep(1)
         for cm in camp:
+            database.Insert("company", "'{0}', '{1}', '{2}', '{3}'".format(cm['id'],ac["account_id"],
+                                                                           cm["name"], ac["account_name"]))
             resp = vk.ads.getAds(account_id=ac["account_id"], include_deleted=1, campaign_ids="[{0}]".format(cm["id"]))
             adIds = {}
             for ad in resp:
@@ -64,6 +67,7 @@ def StaticLoad(api, acid, adids):
                 static.append((id, stat["day"], join, clicks, reach, 0, 0, 0, spent))
         database.InsertStatic(static)
 
+# endregion
 
 def CreateAcc(name, login, password, spent, critik, join):
     database.Insert("account", "'{0}', '{1}','{2}','{3}','{4}','{5}'".format(name,
@@ -103,7 +107,7 @@ def GetMonitor(start, end):
 
             max_per = ac["max_waste_per_month"] / 30 * day
             info['day'] = day
-            info['info'].update({c: {"name":ac["name"],"spent": spent, "join": join, "summ": summ,
+            info['info'].update({c: {"office": acv['id'], "name":ac["name"],"spent": spent, "join": join, "summ": summ,
                                   "minimal": minimal, "pale_join": pale_join, "max_per": max_per, "last": last}})
 
 
@@ -140,7 +144,7 @@ def GetStats(start, end):
     return static
 
 
-def GetCamp(start, end, type):
+def GetCamp(start, end, type, office):
     static = {}
     c = 0
     start_d = datetime.strptime(start, "%Y-%m-%d")
@@ -149,7 +153,7 @@ def GetCamp(start, end, type):
     last_day = end_d.replace(day=end_d.day-1).strftime("%Y-%m-%d")
     day = -day.days
     for aci in database.GetInfo("account"):
-        for ac in database.GetInfo("account_monitor", sorting="office_login='{0}'".format(aci['login'])):
+        for ac in database.GetInfo("account_monitor", sorting="id='{0}'".format(office)):
             join = 0
             clicks = 0
             spent = 0
@@ -178,8 +182,56 @@ def GetCamp(start, end, type):
                     name = ad["name_camp"]
 
             if name != "":
-                static.update({c: {'day': day,  'spent': spent,'join': join, 'clicks': clicks, 'traffic': traffic, 'reach': reach,
+                static.update({c: {'day': day,'office': ac['id'],  'spent': spent,'join': join, 'clicks': clicks, 'traffic': traffic, 'reach': reach,
                                             'max_per': aci['max_waste_per_month'], 'join_message': join_message, 'name_camp': name,
                                             'name_office': office, 'sale': sale, 'last': last}})
             c += 1
+    return static
+
+
+def GetDetCamp(start, end, type, office):
+    static = {}
+    c = 0
+    start_d = datetime.strptime(start, "%Y-%m-%d")
+    end_d = datetime.strptime(end, "%Y-%m-%d")
+    day = start_d - end_d
+    last_day = end_d.replace(day=end_d.day-1).strftime("%Y-%m-%d")
+    day = -day.days
+    for aci in database.GetInfo("account"):
+        for ac in database.GetInfo("account_monitor", sorting="id='{0}'".format(office)):
+            for cm in database.GetInfo("company", sorting="office_id='{0}'".format(ac['id'])):
+                join = 0
+                clicks = 0
+                spent = 0
+                reach = 0
+                traffic = 0
+                sale = 0
+                join_message = 0
+                name = ""
+                office = ""
+                last = {'spent':0, 'join':0}
+                for ad in database.GetInfo("ads", "id_campagins='{0}'".format(cm['id'])):
+                    if type.lower() in ad["name_camp"].lower():
+                        id = ad["id"]
+                        for static_ad in database.GetAds(start, end, "id_ads = '{0}'".format(id)):
+                            if last_day == static_ad["date"]:
+                                last['spent'] += static_ad["spent"]
+                                last['join'] += static_ad["join"]
+                            clicks += static_ad["clicks"]
+                            spent += static_ad["spent"]
+                            reach += static_ad["reach"]
+                            traffic += static_ad["traffic"]
+                            sale += static_ad["sale"]
+                            join_message += static_ad["join_message"]
+                            join += static_ad["join"]
+                        office = ad['name_office']
+                        name = ad["name_camp"]
+
+                if name != "":
+                        static.update({c: {'day': day,'office': ac['id'],  'spent': spent,'join': join, 'clicks': clicks,
+                                            'traffic': traffic, 'reach': reach,
+                                            'max_per': aci['max_waste_per_month'], 'join_message': join_message,
+                                            'name_camp': name,
+                                            'name_office': office, 'sale': sale, 'last': last}})
+                c += 1
     return static
