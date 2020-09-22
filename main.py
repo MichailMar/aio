@@ -9,23 +9,43 @@ here = str(Path(__file__).resolve().parent) + "/templates"
 routes = web.RouteTableDef()
 
 
+@routes.get('/company')
+@aiohttp_jinja2.template('clickbate.html')
+async def company(req):
+    q = req.rel_url.query
+    dr = {}
+    click = {}
+    if "date_start" in q and "date_end" in q and "office" in q:
+        dr = core.GetCamp(q["date_start"], q["date_end"], "ДР", q['office'])
+        click = core.GetCamp(q["date_start"], q["date_end"], "Кликбейт", q['office'])
+    return {"dr": dr, "click": click, 'type': 1,
+            'info':{'start': q["date_start"], 'end': q["date_end"]}}
+
+
+@routes.get('/details_company')
+@aiohttp_jinja2.template('clickbate.html')
+async def detcompany(req):
+    q = req.rel_url.query
+    stat = {}
+    print(q)
+    if "date_start" in q and "date_end" in q and "office" in q:
+        stat = core.GetDetCamp(q["date_start"], q["date_end"], q['type'], q['office'])
+    return {'stat': stat, 'type': 2}
+
+
 @aiohttp_jinja2.template('main.html')
 async def monitor(req):
     q = req.rel_url.query
-    type = 0
-    if "monitor" in q:
-        type = 1
-    elif "clickbate" in q:
-        type = 2
-
-    stat = ""
-    if "start_date" in q and "end_date" in q and type == 2 and "type" in q:
-        stat = core.GetCamp(q["start_date"], q["end_date"],q['type'])
-    elif "start_date" in q and "end_date" in q and type == 1:
+    if "start_date" in q and "end_date" in q:
         stat = core.GetMonitor(q["start_date"], q["end_date"])
-    return {"type": type, "resp": stat}
+        return {"resp": stat, 'loading': 1,'info': {
+        'start': q["start_date"], 'end': q["end_date"] }}
+    return {'loading': 0}
 
 
+
+
+# region Utils
 @routes.get('/')
 @aiohttp_jinja2.template('login.html')
 async def index_handler(request):
@@ -61,11 +81,16 @@ def smart_round(text: str, ndigits: int = 2) -> str:
     except:  # строка не является float / int
         return ''
 
+# endregion
 
+# region Main
 filters = {"smart_round": smart_round}
 app = web.Application()
 aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader(here), filters=filters)
 app.router.add_get('/', index_handler)
 app.router.add_get('/monitoring', monitor)
 app.router.add_get('/accadd', addacc)
+app.router.add_get('/company', company)
+app.router.add_get('/details_company', detcompany)
+app.router.add_post('/create', create)
 web.run_app(app, host='91.210.168.170')
