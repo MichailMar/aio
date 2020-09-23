@@ -107,6 +107,8 @@
                     <td>{{ stat[camp].clicks | smart_round }}</td>
                     <td>{{ stat[camp].last.spent | smart_round }}</td>
                     <td>{{ stat[camp].last.join | smart_round }}</td>
+                    <td><a href="/ads?start_date={{ info.start }}&end_date={{ info.end }}&camp={{ stat[camp].camp }}">объявления</a></td>
+
                 </tr>
             {% endfor %}
 
