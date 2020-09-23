@@ -276,3 +276,4 @@ def GetAds(start, end, camp_id):
         c += 1
 
     return stats
+
