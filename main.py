@@ -30,7 +30,7 @@ async def detcompany(req):
     print(q)
     if "date_start" in q and "date_end" in q and "office" in q:
         stat = core.GetDetCamp(q["date_start"], q["date_end"], q['type'], q['office'])
-    return {'stat': stat, 'type': 2}
+    return {'stat': stat, 'type': 2, 'info':{'start': q["date_start"], 'end': q["date_end"]}}
 
 
 @aiohttp_jinja2.template('main.html')
@@ -43,7 +43,15 @@ async def monitor(req):
     return {'loading': 0}
 
 
-
+@routes.get('/ads')
+@aiohttp_jinja2.template('ads.html')
+def ads(req):
+    q = req.rel_url.query
+    if "start_date" in q and "end_date" in q:
+        stat = core.GetAds(q["start_date"], q["end_date"], q['camp'])
+        return {"resp": stat, 'loading': 1,'info': {
+        'start': q["start_date"], 'end': q["end_date"] }}
+    return {'loading': 0}
 
 # region Utils
 @routes.get('/')
@@ -91,6 +99,7 @@ app.router.add_get('/', index_handler)
 app.router.add_get('/monitoring', monitor)
 app.router.add_get('/accadd', addacc)
 app.router.add_get('/company', company)
+app.router.add_get('/ads', ads)
 app.router.add_get('/details_company', detcompany)
 app.router.add_post('/create', create)
 web.run_app(app, host='91.210.168.170')
