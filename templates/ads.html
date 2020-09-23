@@ -46,6 +46,7 @@
     <table class="table_dark">
         <tr>
             <th>Имя объвления</th>
+            <th>Вступления</th>
             <th>Потрачено за {{ resp.day }} дня</th>
             <th>Вступления</th>
             <th>Цена 1 вступления</th>
@@ -56,6 +57,7 @@
                 <tr>
                     <td>{{ resp[res].name }}</td>
                     <td>{{ resp[res].spent | smart_round }}</td>
+                    <td>{{ resp[res].status }}</td>
                     <td>{{ resp[res].join | smart_round }}</td>
                     <td>{{ resp[res].join_summ | smart_round }}</td>
                     <td>{{ resp[res].plane_join_summ | smart_round }}</td>
