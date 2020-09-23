@@ -2,7 +2,8 @@ import time
 from python3_anticaptcha import ImageToTextTask
 import vk_api
 from vklibary import database
-from datetime import datetime, timedelta
+from datetime import datetime
+
 
 def captcha_handler(captcha):
     key = ImageToTextTask.ImageToTextTask(anticaptcha_key="f0d1147d67df6a70b77ccf1e41372dc1", save_format='const') \
@@ -10,6 +11,7 @@ def captcha_handler(captcha):
 
     # Пробуем снова отправить запрос с капчей
     return captcha.try_again(key['solution']['text'])
+
 
 # region Upload
 def UploadInfo():
@@ -34,9 +36,10 @@ def UploadInfo():
             resp = vk.ads.getAds(account_id=ac["account_id"], include_deleted=1, campaign_ids="[{0}]".format(cm["id"]))
             adIds = {}
             for ad in resp:
-                database.Insert("ads", "'{0}', '{1}', '{2}','{3}', '{4}', '{5}'".format(ad["id"], ad["name"], cm["id"],
+                database.Insert("ads", "'{0}', '{1}', '{2}','{3}', '{4}', '{5}', {6}, {7}".format(ad["id"], ad["name"], cm["id"],
                                                                                         ac["account_id"],
-                                                                                        cm["name"], ac["account_name"]))
+                                                                                        cm["name"], ac["account_name"],
+                                                                                        ad['status'], ad['all_limit']))
                 adIds.update({str(ad["id"]): 0})
             StaticLoad(vk, ac["account_id"], adIds)
             time.sleep(1)
@@ -69,6 +72,7 @@ def StaticLoad(api, acid, adids):
 
 # endregion
 
+
 def CreateAcc(name, login, password, spent, critik, join):
     database.Insert("account", "'{0}', '{1}','{2}','{3}','{4}','{5}'".format(name,
                                                                              login,
@@ -77,7 +81,7 @@ def CreateAcc(name, login, password, spent, critik, join):
                                                                              critik,
                                                                              join))
 
-
+# region monitor
 def GetMonitor(start, end):
     info = {"day": 0, 'info': {}}
     c = 0
@@ -113,7 +117,6 @@ def GetMonitor(start, end):
 
     return info
 
-
 def GetStats(start, end):
     static = {}
     for ad in database.GetInfo("ads"):
@@ -143,7 +146,9 @@ def GetStats(start, end):
 
     return static
 
+# endregion
 
+# region company
 def GetCamp(start, end, type, office):
     static = {}
     c = 0
@@ -232,6 +237,42 @@ def GetDetCamp(start, end, type, office):
                                             'traffic': traffic, 'reach': reach,
                                             'max_per': aci['max_waste_per_month'], 'join_message': join_message,
                                             'name_camp': name,
-                                            'name_office': office, 'sale': sale, 'last': last}})
+                                            'name_office': office, 'sale': sale, 'last': last, 'camp': ad['id_campagins']}})
                 c += 1
     return static
+# endregion
+
+
+def GetAds(start, end, camp_id):
+    # region var
+    stats = {}
+    c = 0
+    start_d = datetime.strptime(start, "%Y-%m-%d")
+    end_d = datetime.strptime(end, "%Y-%m-%d")
+    day = start_d - end_d
+    last_day = end_d.replace(day=end_d.day-1).strftime("%Y-%m-%d")
+    day = -day.days
+    # endregion
+
+    for ad in database.GetInfo('ads', sorting="id_campagins='{0}'".format(camp_id)):
+        join = 0
+        clicks = 0
+        spent = 0
+        reach = 0
+        last = {'spent': 0, 'join': 0}
+        for static_ad in database.GetAds(start, end, "id_ads = '{0}'".format(ad['id'])):
+            if last_day == static_ad["date"]:
+                last['spent'] += static_ad["spent"]
+                last['join'] += static_ad["join"]
+            clicks += static_ad["clicks"]
+            spent += static_ad["spent"]
+            reach += static_ad["reach"]
+            join += static_ad["join"]
+        joinsumm = 0
+        if join != 0 and spent != 0:
+            joinsumm = spent / join
+        stats.update({c:{'status':ad['status'], 'join': join, 'name': ad['name'], 'join_summ': joinsumm,
+                         'spent': spent, 'limit': ad['limit'], 'plane_join_summ': 0}})
+        c += 1
+
+    return stats
