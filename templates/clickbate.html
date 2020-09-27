@@ -44,18 +44,21 @@
 </head>
 <table class="table_dark">
     <tr>
-        <th>Имя аккаунта</th>
-        <th>Тип компании</th>
-        <th>Потрачено за {{ day }}</th>
-        <th>Должно потрачего за {{ day }}</th>
-        <th>Охват</th>
-        <th>Продажи</th>
-        <th>Трафик</th>
-        <th>Привличено подписчиков</th>
-        <th>Подписок на рассылку</th>
-        <th>Кликов</th>
-        <th>Потрачено за прошлый день</th>
-        <th>Подписчиков за прошлый день</th>
+        <th>Имя компании</th>
+        <th>Статус</th>
+        <th>План. цены цели</th>
+        <th>Достигнуто М</th>
+        <th>План М</th>
+        <th>Затраты М</th>
+        <th>Цена Цели М</th>
+        <th>Достигнуто Н</th>
+        <th>План Н</th>
+        <th>Затраты Н</th>
+        <th>Цена Цели Н</th>
+        <th>Достигнуто Д</th>
+        <th>План Д</th>
+        <th>Затраты Д</th>
+        <th>Цена Цели Д</th>
     </tr>
     {% if type == 1 %}
         {% for camp in dr %}
@@ -95,19 +98,23 @@
     {% else %}
             {% for camp in stat %}
                 <tr>
-                    <td>{{ stat[camp].name_office }}</td>
-                    <td>{{ stat[camp].name_camp }}</td>
-                    <td>{{ stat[camp].spent | smart_round }}</td>
-                    <td>{{ stat[camp].max_per | smart_round }}</td>
-                    <td>{{ stat[camp].reach | smart_round }}</td>
-                    <td>{{ stat[camp].sale | smart_round }}</td>
-                    <td>{{ stat[camp].traffic | smart_round }}</td>
-                    <td>{{ stat[camp].join | smart_round }}</td>
-                    <td>{{ stat[camp].join_message | smart_round }}</td>
-                    <td>{{ stat[camp].clicks | smart_round }}</td>
-                    <td>{{ stat[camp].last.spent | smart_round }}</td>
-                    <td>{{ stat[camp].last.join | smart_round }}</td>
-                    <td><a href="/ads?start_date={{ info.start }}&end_date={{ info.end }}&camp={{ stat[camp].camp }}">объявления</a></td>
+                    <td>{{ stat[camp].name }}</td>
+                    <td>None</td>
+                    <td>10</td>
+                    <td>{{ stat[camp].period['30'].join | smart_round }}</td>
+                    <td>{{ stat[camp].period['30'].plane_join | smart_round }}</td>
+                    <td>{{ stat[camp].period['30'].spent | smart_round }}</td>
+                    <td>{{ stat[camp].period['30'].join_one | smart_round }}</td>
+                    <td>{{ stat[camp].period['7'].join | smart_round }}</td>
+                    <td>{{ stat[camp].period['7'].plane_join | smart_round }}</td>
+                    <td>{{ stat[camp].period['7'].spent | smart_round }}</td>
+                    <td>{{ stat[camp].period['7'].join_one | smart_round }}</td>
+                    <td>{{ stat[camp].period['1'].join | smart_round }}</td>
+                    <td>{{ stat[camp].period['1'].plane_join | smart_round }}</td>
+                    <td>{{ stat[camp].period['1'].spent | smart_round }}</td>
+                    <td>{{ stat[camp].period['1'].join_one | smart_round }}</td>
+
+                    <td><a href="/ads?start_date={{ info.start }}&end_date={{ info.end }}&camp={{ stat[camp].id }}">объявления</a></td>
 
                 </tr>
             {% endfor %}
