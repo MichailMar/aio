@@ -25,3 +25,5 @@ def Data(dat, day):
     new = dat.replace(month=dat.month - 1,
     day=num_days[dat.month] - days)
     return new.strftime("%Y-%m-%d")
+  new = dat.replace(day=dat.day-day)
+  return new.strftime("%Y-%m-%d")
