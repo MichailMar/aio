@@ -61,43 +61,52 @@
         <th>Цена Цели Д</th>
     </tr>
     {% if type == 1 %}
+        {% for camp in click %}
+                 <tr>
+                    <td>{{ click[camp].name }}</td>
+                    <td>None</td>
+                    <td>10</td>
+                    <td>{{ click[camp].period['30'].join | smart_round }}</td>
+                    <td>{{ click[camp].period['30'].plane_join | smart_round }}</td>
+                    <td>{{ click[camp].period['30'].spent | smart_round }}</td>
+                    <td>{{ click[camp].period['30'].join_one | smart_round }}</td>
+                    <td>{{ click[camp].period['7'].join | smart_round }}</td>
+                    <td>{{ click[camp].period['7'].plane_join | smart_round }}</td>
+                    <td>{{ click[camp].period['7'].spent | smart_round }}</td>
+                    <td>{{ click[camp].period['7'].join_one | smart_round }}</td>
+                    <td>{{ click[camp].period['1'].join | smart_round }}</td>
+                    <td>{{ click[camp].period['1'].plane_join | smart_round }}</td>
+                    <td>{{ click[camp].period['1'].spent | smart_round }}</td>
+                    <td>{{ click[camp].period['1'].join_one | smart_round }}</td>
+
+                    <td><a href="/details_company?date_start={{ info.start }}&date_end={{ info.end }}&office={{ click[camp].office }}&type={{click[camp].name}}">подробнее</a></td>
+
+                </tr>
+    {% endfor %}
         {% for camp in dr %}
                 <tr>
-                    <td>{{ dr[camp].name_office }}</td>
-                    <td>ДР</td>
-                    <td>{{ dr[camp].spent | smart_round }}</td>
-                    <td>{{ dr[camp].max_per | smart_round }}</td>
-                    <td>{{ dr[camp].reach | smart_round }}</td>
-                    <td>{{ dr[camp].sale | smart_round }}</td>
-                    <td>{{ dr[camp].traffic | smart_round }}</td>
-                    <td>{{ dr[camp].join | smart_round }}</td>
-                    <td>{{ dr[camp].join_message | smart_round }}</td>
-                    <td>{{ dr[camp].clicks | smart_round }}</td>
-                    <td>{{ dr[camp].last.spent | smart_round }}</td>
-                    <td>{{ dr[camp].last.join | smart_round }}</td>
-                    <td><a href="/details_company?date_start={{ info.start }}&date_end={{ info.end }}&office={{ click[camp].office }}&type=др">подробнее</a></td>                </tr>
-        {% endfor %}
-        {% for camp in click %}
+                    <td>{{ dr[camp].name }}</td>
+                    <td>None</td>
+                    <td>10</td>
+                    <td>{{ dr[camp].period['30'].join | smart_round }}</td>
+                    <td>{{ dr[camp].period['30'].plane_join | smart_round }}</td>
+                    <td>{{ dr[camp].period['30'].spent | smart_round }}</td>
+                    <td>{{ dr[camp].period['30'].join_one | smart_round }}</td>
+                    <td>{{ dr[camp].period['7'].join | smart_round }}</td>
+                    <td>{{ dr[camp].period['7'].plane_join | smart_round }}</td>
+                    <td>{{ dr[camp].period['7'].spent | smart_round }}</td>
+                    <td>{{ dr[camp].period['7'].join_one | smart_round }}</td>
+                    <td>{{ dr[camp].period['1'].join | smart_round }}</td>
+                    <td>{{ dr[camp].period['1'].plane_join | smart_round }}</td>
+                    <td>{{ dr[camp].period['1'].spent | smart_round }}</td>
+                    <td>{{ dr[camp].period['1'].join_one | smart_round }}</td>
 
-                <tr>
-                    <td>{{ click[camp].name_office }}</td>
-                    <td>Кликбейт</td>
-                    <td>{{ click[camp].spent | smart_round }}</td>
-                    <td>{{ click[camp].max_per | smart_round }}</td>
-                    <td>{{ click[camp].reach | smart_round }}</td>
-                    <td>{{ click[camp].sale | smart_round }}</td>
-                    <td>{{ click[camp].traffic | smart_round }}</td>
-                    <td>{{ click[camp].join | smart_round }}</td>
-                    <td>{{ click[camp].join_message | smart_round }}</td>
-                    <td>{{ click[camp].clicks | smart_round }}</td>
-                    <td>{{ click[camp].last.spent | smart_round }}</td>
-                    <td>{{ click[camp].last.join | smart_round }}</td>
-                    <td><a href="/details_company?date_start={{ info.start }}&date_end={{ info.end }}&office={{ click[camp].office }}&type=кликбейт">подробнее</a></td>
+                    <td><a href="/details_company?date_start={{ info.start }}&date_end={{ info.end }}&office={{ dr[camp].office }}&type={{dr[camp].name}}">подробнее</a></td>
                 </tr>
         {% endfor %}
     {% else %}
             {% for camp in stat %}
-                <tr>
+                 <tr>
                     <td>{{ stat[camp].name }}</td>
                     <td>None</td>
                     <td>10</td>
