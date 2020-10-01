@@ -105,40 +105,48 @@ def GetAcc():
 def GetMonitor(start, end):
     info = {"day": 0, 'info': {}}
     c = 0
+    static = database.GetAds(start, end)
+    ads = database.GetInfo("ads")
+    account = database.GetInfo("account_monitor")
     for ac in database.GetInfo("account"):
         c += 1
-        for acv in database.GetInfo("account_monitor", sorting="office_login='{0}'".format(ac['login'])):
-            start_d = datetime.strptime(start, "%Y-%m-%d")
-            end_d = datetime.strptime(end, "%Y-%m-%d")
-            day = start_d - end_d
-            day = -day.days + 1
-            last_day = utils.Data(end_d, 1)
-            last = {'spent': 0, 'join': 0}
-            spent = 0
-            join = 0
-            summ = acv["summ"]
-            minimal = ac["minimal_budjet"]
-            pale_join = ac["plane_join"]
+        for acv in account:
+            if acv['office_login'] == ac['login']:
+                start_d = datetime.strptime(start, "%Y-%m-%d")
+                end_d = datetime.strptime(end, "%Y-%m-%d")
+                day = start_d - end_d
+                day = -day.days + 1
+                last_day = utils.Data(end_d, 1)
+                last = {'spent': 0, 'join': 0}
+                spent = 0
+                join = 0
+                summ = acv["summ"]
+                minimal = ac["minimal_budjet"]
+                pale_join = ac["plane_join"]
 
-            for ad in database.GetInfo("ads", sorting="id_ads_office='{0}'".format(acv["id"])):
-                id = ad["id"]
-                for static_ad in database.GetAds(start, end, "id_ads = '{0}'".format(id)):
-                    spent += static_ad["spent"]
-                    join += static_ad["join"]
-                    if last_day == static_ad["date"]:
-                        last['spent'] += static_ad["spent"]
-                        last['join'] += static_ad["join"]
-            sp_plane = int(ac['max_waste_per_month']) / 30
-            max_per = ac["max_waste_per_month"] / 30 * day
-            info['day'] = day
-            info['info'].update(
-                {c: {'plane_sp':sp_plane,"office": acv['id'], "name": acv["name"], "spent": spent, "join": join,
-                     "summ": summ,
-                     "minimal": minimal, "pale_join": pale_join, "max_per": max_per, "last": last}})
+                for ad in ads:
+                    if ad['id_ads_office'] == acv['id']:
+                        id = ad["id"]
+
+                        for static_ad in static:
+                            if static_ad['id_ads'] == id:
+                                spent += static_ad["spent"]
+                                join += static_ad["join"]
+                                if last_day == static_ad["date"]:
+                                    last['spent'] += static_ad["spent"]
+                                    last['join'] += static_ad["join"]
+                sp_plane = int(ac['max_waste_per_month']) / 30
+                max_per = ac["max_waste_per_month"] / 30 * day
+                info['day'] = day
+                info['info'].update(
+                    {c: {'plane_sp':sp_plane,"office": acv['id'], "name": acv["name"], "spent": spent, "join": join,
+                         "summ": summ,
+                         "minimal": minimal, "pale_join": pale_join, "max_per": max_per, "last": last}})
 
     return info
 
 def GetStats(start, end):
+    stats_b = database.GetAds(start, end)
     static = {}
     for ad in database.GetInfo("ads"):
         day = 0
@@ -150,15 +158,16 @@ def GetStats(start, end):
         sale = 0
         join_message = 0
         id = ad["id"]
-        for static_ad in database.GetAds(start, end, "id_ads = '{0}'".format(id)):
-            day += 1
-            clicks += static_ad["clicks"]
-            spent += static_ad["spent"]
-            reach += static_ad["reach"]
-            traffic += static_ad["traffic"]
-            sale += static_ad["sale"]
-            join_message += static_ad["join_message"]
-            join += static_ad["join"]
+        for static_ad in stats_b:
+            if static_ad['ads_id'] == id:
+                day += 1
+                clicks += static_ad["clicks"]
+                spent += static_ad["spent"]
+                reach += static_ad["reach"]
+                traffic += static_ad["traffic"]
+                sale += static_ad["sale"]
+                join_message += static_ad["join_message"]
+                join += static_ad["join"]
 
         if day != 0:
             static.update({id: {'day': day, 'join': join, 'clicks': clicks, 'traffic': traffic, 'reach': reach,
