@@ -4,12 +4,14 @@ from vklibary import database
 def getStats(start, end, sorting, type):
     join = 0
     spent = 0
+    static = database.GetAds(start, end)
     for ad in database.GetInfo('ads', sorting):
         if type.lower() in ad["name_camp"].lower():
-            for static_ad in database.GetAds(start, end, "id_ads = '{0}'".format(ad['id'])):
-                join += static_ad['join']
-                spent += static_ad['spent']
-            status = ad['status']
+            for static_ad in static:
+                if static_ad['id_ads'] == ad['id']:
+                    join += static_ad['join']
+                    spent += static_ad['spent']
+                status = ad['status']
 
     return {'join':join, 'spent': spent}
 
