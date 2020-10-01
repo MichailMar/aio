@@ -16,7 +16,11 @@ def GetInfo(table, sorting="", what="*"):
 
 
 def GetAds(datestart, dateend, sorting=""):
-    sql = "SELECT * FROM static WHERE date BETWEEN '{0}' and '{1}' AND {2} ".format(datestart, dateend, sorting)
+    sql = ""
+    if sorting == "":
+        sql = "SELECT * FROM static WHERE date BETWEEN '{0}' and '{1}' ".format(datestart, dateend)
+    else:
+        sql = "SELECT * FROM static WHERE date BETWEEN '{0}' and '{1}' AND {2} ".format(datestart, dateend, sorting)
     obj = c.execute(sql)
     return obj.fetchall()
 
