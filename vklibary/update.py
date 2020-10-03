@@ -1,5 +1,5 @@
 import time
-from vklibary import core
+import core
 
 
 while True:
